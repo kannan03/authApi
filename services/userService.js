@@ -7,15 +7,15 @@ const jwtSecret = process.env.JWT_SECRET ;
 const PORT = process.env.PORT || 5000;
 const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '2m';
 
-exports.authenticateUser = async (username, password, res) => {
+exports.authenticateUser = async (username, password) => {
   try{
     const user = await User.findOne({ username });
     if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+      throw new Error("User not found")
     }
   
     if (user.lockUntil && user.lockUntil > Date.now()) {
-      return res.status(401).json({ error: 'Account is locked' });
+      throw new Error("Account is locked")
     }
   
     const isMatch = await bcrypt.compare(password, user.password);
@@ -26,7 +26,7 @@ exports.authenticateUser = async (username, password, res) => {
         user.failedLoginAttempts = 0;
       }
       await user.save();
-      return res.status(401).json({ error: 'Invalid credentials' });
+      throw new Error("Invalid credentials")
     }
 
     // Reset failed login attempts
@@ -39,7 +39,7 @@ exports.authenticateUser = async (username, password, res) => {
 
   }catch(error){
      console.log("authenticateUser service something went wrong", error)
-     return error;
+     throw error;
   }
 };
 
@@ -53,23 +53,26 @@ exports.createUser = async (bodyData) => {
     await user.save();
     return user;
   }catch(error){
-    console.log("createUser service something went wrong----------------------------", error)
-    return error;
+    console.log("createUser service something went wrong", error)
+    throw error;
   }
 };
 
-exports.verifyOneTimeLink = async (token, res) =>{
+exports.verifyOneTimeLink = async (token) =>{
   try{
     const payload = jwt.verify(token, jwtSecret);
-    const user = await User.findById(payload.user_id);
-    if (!user || user.verifyTokenLink) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
+    const user = await User.findById(payload?.user_id);
+    if (!user) {
+      throw new Error("Invalid or expired token")
+    }
+    if (user?.verifyTokenLink) {
+      throw new Error("Token already used")
     }
     user.verifyTokenLink = true;
     await user.save();
-    return payload;
+    return user;
   }catch(error){
     console.log("verifyOneTimeLink service something went wrong", error)
-    return error;
+    throw error;
   }
 }

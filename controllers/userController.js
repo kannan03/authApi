@@ -19,20 +19,20 @@ exports.login = async (req, res) => {
     if( !username || !password){
       return res.status(401).json({ error: "username or password is empty" });
     }
-    const data = await UserService.authenticateUser(username, password, res);
+    const data = await UserService.authenticateUser(username, password);
     res.status(200).json({ data });
   } catch (error) {
-    res.status(500).json({ error: 'something went wrong' });
+    res.status(400).json({ error: error?.message });
   }
 };
 
 exports.verifyOneTimeLink = async (req, res)=>{
    try{
     const token = req.params.token;
-    const payload = await UserService.verifyOneTimeLink(token, res);
-    res.json({ payload });
+    const data = await UserService.verifyOneTimeLink(token);
+    res.status(200).json({ data });
    }catch(error){
-    res.status(500).json({ error: 'something went wrong' });
+    res.status(401).json({ error: error?.message });
    }
 }
 
