@@ -1,7 +1,7 @@
 const express = require('express');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
-const logger = require('./config/logger');  // Import the logger
+const logger = require('./config/logger');  
 const rateLimit = require('express-rate-limit');
 const http = require("http");
 const app = express();
@@ -20,7 +20,7 @@ app.use((req, res, next) => {
 
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    max: 100, 
     message: 'Too many requests from this IP, please try again after 15 minutes',
     headers: true,
 });
@@ -28,15 +28,9 @@ const apiLimiter = rateLimit({
 // Apply rate limiting to all requests
 app.use(apiLimiter);
 
-// middleware check
-app.use((req,res, next)=>{
-  console.log("hello middleware")
-  next();
-});
 
 // Define Routes
 app.use('/api/auth', userRoutes);
-
 
 const server = http.createServer(app)
 
