@@ -28,6 +28,12 @@ const apiLimiter = rateLimit({
 // Apply rate limiting to all requests
 app.use(apiLimiter);
 
+// middleware check
+app.use((req,res, next)=>{
+  console.log("hello middleware")
+  next();
+});
+
 // Define Routes
 app.use('/api/auth', userRoutes);
 
